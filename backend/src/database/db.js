@@ -1,23 +1,29 @@
-import { PGlite } from '@electric-sql/pglite';
+import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
-import fs from 'fs';
-import path from 'path';
+import pkg from 'pg';
 
-const dataDir = path.resolve(process.cwd(), process.env.PGLITE_DATA_DIR || './data/pglite');
-fs.mkdirSync(dataDir, { recursive: true });
+dotenv.config();
 
-console.log(`Banco PGlite local: ${dataDir}`);
+const { Pool } = pkg;
 
-export const db = new PGlite(dataDir);
+const pool = new Pool({
+  host: process.env.PGHOST || '127.0.0.1',
+  port: Number(process.env.PGPORT || 5432),
+  user: process.env.PGUSER,
+  password: process.env.PGPASSWORD,
+  database: process.env.PGDATABASE,
+  ssl:
+    String(process.env.PGSSL || 'false').toLowerCase() === 'true'
+      ? { rejectUnauthorized: false }
+      : false
+});
 
 export async function query(sql, params = []) {
-  return db.query(sql, params);
+  return pool.query(sql, params);
 }
 
 export async function closeDB() {
-  if (typeof db.close === 'function') {
-    await db.close();
-  }
+  await pool.end();
 }
 
 export async function initDB() {
@@ -124,9 +130,14 @@ async function createTables() {
 }
 
 async function seedInitialData() {
-  const adminCount = await query('SELECT COUNT(*) AS total FROM usuarios WHERE email = $1', ['admin@odontek.com.br']);
-  if (Number(adminCount.rows[0].total) === 0) {
+  const adminCount = await query(
+    'SELECT COUNT(*) AS total FROM usuarios WHERE email = $1',
+    ['admin@odontek.com.br']
+  );
+
+  if (Number(adminCount.rows[0].count || adminCount.rows[0].total) === 0) {
     const senhaHash = await bcrypt.hash('admin123', 10);
+
     await query(
       'INSERT INTO usuarios (nome, email, senha, role) VALUES ($1, $2, $3, $4)',
       ['Administrador', 'admin@odontek.com.br', senhaHash, 'admin']
@@ -134,7 +145,8 @@ async function seedInitialData() {
   }
 
   const catCount = await query('SELECT COUNT(*) AS total FROM categorias');
-  if (Number(catCount.rows[0].total) === 0) {
+
+  if (Number(catCount.rows[0].count || catCount.rows[0].total) === 0) {
     const categorias = [
       ['Consultórios / Cadeiras', 'Cadeiras odontológicas, consultórios completos e conjuntos de atendimento.'],
       ['Peças de mão', 'Canetas de alta rotação, contra-ângulos, micromotores e peças retas.'],
@@ -147,19 +159,26 @@ async function seedInitialData() {
     ];
 
     for (const [nome, descricao] of categorias) {
-      await query('INSERT INTO categorias (nome, descricao) VALUES ($1, $2)', [nome, descricao]);
+      await query(
+        'INSERT INTO categorias (nome, descricao) VALUES ($1, $2)',
+        [nome, descricao]
+      );
     }
   }
 
   const prodCount = await query('SELECT COUNT(*) AS total FROM produtos');
-  if (Number(prodCount.rows[0].total) === 0) {
+
+  if (Number(prodCount.rows[0].count || prodCount.rows[0].total) === 0) {
     const categoriasRows = await query('SELECT id, nome FROM categorias');
-    const categoriaId = Object.fromEntries(categoriasRows.rows.map((c) => [c.nome, c.id]));
+
+    const categoriaId = Object.fromEntries(
+      categoriasRows.rows.map((c) => [c.nome, c.id])
+    );
 
     const produtos = [
       {
         nome: 'Cadeira odontológica completa',
-        descricao: 'Consultório odontológico completo para clínicas que buscam conforto, tecnologia e alta durabilidade. Produto sujeito a frete, instalação e configuração.',
+        descricao: 'Consultório odontológico completo para clínicas que buscam conforto, tecnologia e alta durabilidade.',
         marca: 'Linha Premium',
         modelo: 'Consultório Completo',
         categoria: 'Consultórios / Cadeiras',
@@ -170,7 +189,7 @@ async function seedInitialData() {
       },
       {
         nome: 'Caneta de alta rotação',
-        descricao: 'Caneta de alta rotação indicada para procedimentos clínicos, com excelente desempenho e ergonomia.',
+        descricao: 'Caneta de alta rotação indicada para procedimentos clínicos.',
         marca: 'Odonto Pro',
         modelo: 'Alta 400',
         categoria: 'Peças de mão',
@@ -181,7 +200,7 @@ async function seedInitialData() {
       },
       {
         nome: 'Contra-ângulo odontológico',
-        descricao: 'Contra-ângulo para uso clínico, compatível com micromotor padrão e indicado para procedimentos diversos.',
+        descricao: 'Contra-ângulo para uso clínico.',
         marca: 'Odonto Pro',
         modelo: 'CA 1:1',
         categoria: 'Peças de mão',
@@ -192,57 +211,13 @@ async function seedInitialData() {
       },
       {
         nome: 'Autoclave odontológica 21L',
-        descricao: 'Autoclave para esterilização de instrumentos odontológicos, ideal para clínicas e consultórios.',
+        descricao: 'Autoclave para esterilização.',
         marca: 'BioClean',
         modelo: '21L Digital',
         categoria: 'Esterilização',
         preco: null,
         tipo_venda: 'orcamento',
         estoque: 3,
-        destaque: true
-      },
-      {
-        nome: 'Compressor odontológico silencioso',
-        descricao: 'Compressor odontológico com baixo ruído, indicado para consultórios que precisam de performance e conforto acústico.',
-        marca: 'Silent Air',
-        modelo: '40L',
-        categoria: 'Compressores',
-        preco: null,
-        tipo_venda: 'orcamento',
-        estoque: 2,
-        destaque: false
-      },
-      {
-        nome: 'Kit acadêmico odontológico',
-        descricao: 'Kit para estudantes de odontologia com peças essenciais para atividades práticas e laboratório.',
-        marca: 'Acadêmico Plus',
-        modelo: 'Kit Completo',
-        categoria: 'Kits acadêmicos',
-        preco: 899.90,
-        tipo_venda: 'preco_fixo',
-        estoque: 5,
-        destaque: true
-      },
-      {
-        nome: 'Caixa de luvas descartáveis',
-        descricao: 'Luvas descartáveis para uso clínico. Produto de consumo recorrente para clínicas odontológicas.',
-        marca: 'SafeHands',
-        modelo: '100 unidades',
-        categoria: 'Produtos odontológicos',
-        preco: 39.90,
-        tipo_venda: 'preco_fixo',
-        estoque: 40,
-        destaque: false
-      },
-      {
-        nome: 'Raio-X móvel odontológico',
-        descricao: 'Equipamento de raio-x móvel para uso odontológico. Necessita consulta de disponibilidade, instalação e condições comerciais.',
-        marca: 'Imagem Dental',
-        modelo: 'Mobile X',
-        categoria: 'Raio-X',
-        preco: null,
-        tipo_venda: 'orcamento',
-        estoque: 1,
         destaque: true
       }
     ];
