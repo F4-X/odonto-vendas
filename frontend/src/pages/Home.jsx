@@ -63,25 +63,6 @@ export default function Home() {
 
             </div>
 
-            <div className="hero-stats">
-
-              <div className="hero-stat">
-                <strong>+500</strong>
-                <span>Produtos</span>
-              </div>
-
-              <div className="hero-stat">
-                <strong>24h</strong>
-                <span>Atendimento</span>
-              </div>
-
-              <div className="hero-stat">
-                <strong>Premium</strong>
-                <span>Qualidade</span>
-              </div>
-
-            </div>
-
           </div>
 
           <div className="hero-visual">
