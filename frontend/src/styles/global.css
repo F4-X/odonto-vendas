@@ -34,55 +34,66 @@ h1,h2,h3{line-height:1.05;letter-spacing:-.035em}
 position:sticky;
 top:0;
 z-index:50;
-background:rgba(255,255,255,.94);
+background:rgba(255,255,255,.96);
 backdrop-filter:blur(18px);
 border-bottom:1px solid rgba(0,76,124,.10);
-box-shadow:0 12px 35px rgba(0,76,124,.08);
+box-shadow:0 10px 30px rgba(0,76,124,.08);
 }
 
 .nav-wrap{
 min-height:92px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:24px;
 }
 
 .brand{
-gap:18px;
+display:flex;
+align-items:center;
+gap:16px;
 }
 
 .brand-logo{
-width:66px;
-height:66px;
+width:64px;
+height:64px;
 object-fit:cover;
 border-radius:50%;
 padding:4px;
 background:linear-gradient(135deg,#fff,#eaf6ff);
-box-shadow:
-0 14px 35px rgba(0,76,124,.22),
-inset 0 0 0 1px rgba(255,255,255,.9);
+box-shadow:0 14px 35px rgba(0,76,124,.22);
 }
 
 .brand span{
 border-left:2px solid #d7e7f5;
-padding-left:18px;
+padding-left:16px;
 }
 
 .brand strong{
 display:block;
-font-size:28px;
-letter-spacing:-.04em;
+font-size:26px;
 color:#10243b;
 line-height:1;
 }
 
 .brand small{
-font-size:14px;
+display:block;
+font-size:13px;
 color:#65758b;
-margin-top:8px;
+margin-top:7px;
+}
+
+.nav-links{
+display:flex;
+align-items:center;
+gap:14px;
 }
 
 .nav-links a{
 padding:13px 18px;
 border-radius:15px;
 font-weight:800;
+color:#21344a;
 }
 
 .nav-links a.active{
