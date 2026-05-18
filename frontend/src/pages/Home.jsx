@@ -86,7 +86,7 @@ export default function Home() {
 
           <div className="hero-visual">
   <img
-    src="/cadeira.png"
+    src={cadeira}
     alt="Cadeira odontológica"
     className="hero-chair"
   />
