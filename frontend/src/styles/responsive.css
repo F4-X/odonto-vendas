@@ -1,1 +1,247 @@
-@media(max-width:768px){}
+/* ================= RESPONSIVO ================= */
+@media(max-width:1100px){
+  .products-grid{grid-template-columns:repeat(3,1fr)}
+  .dashboard-cards,.dashboard-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+@media(max-width:980px){
+  .hero-grid,.product-detail-grid,.cart-grid,.contact-grid,.admin-grid.two,.footer-grid{
+    grid-template-columns:1fr
+  }
+  .hero:after{opacity:.35;width:80%}
+  .hero-card{display:none}
+  .hero-stats,.category-grid,.trust-grid{
+    grid-template-columns:1fr 1fr
+  }
+  .products-grid{grid-template-columns:repeat(2,1fr)}
+  .catalog-toolbar,.filters{grid-template-columns:1fr}
+  .checkout-card{position:static}
+  .admin-shell{grid-template-columns:1fr}
+  .admin-sidebar{position:relative;min-height:auto}
+  .admin-sidebar nav{grid-template-columns:repeat(2,1fr)}
+  .product-form{grid-template-columns:repeat(2,1fr)}
+}
+
+.mobile-actions{
+display:none;
+}
+
+@media(max-width:760px){
+  .container{width:min(100% - 28px,1280px)}
+  .site-header{z-index:70}
+  .nav-wrap{min-height:76px;gap:12px}
+  .brand-logo{width:54px;height:54px}
+  .brand-mark{width:42px;height:42px}
+  .brand strong{font-size:17px}
+  .brand small{font-size:11px}
+  .mobile-actions{display:flex;margin-left:auto}
+  .nav-links{
+    display:none;
+    position:absolute;
+    left:14px;
+    right:14px;
+    top:84px;
+    padding:14px;
+    border:1px solid var(--cinza-borda);
+    border-radius:24px;
+    background:#fff;
+    box-shadow:var(--sombra)
+  }
+  .nav-links.open{display:grid;gap:8px}
+  .nav-links a{padding:14px;border-radius:16px;background:#f5f8fa;font-size:15px}
+  .hero{padding:44px 0 34px}
+  .hero h1{font-size:44px;letter-spacing:-2px}
+  .hero p{font-size:16px;line-height:1.6}
+  .hero-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .hero-actions .btn{width:100%;min-height:52px}
+  .hero-stats{grid-template-columns:1fr;gap:0}
+  .hero-stat{border-right:0;border-bottom:1px solid #e5eef8}
+  .hero-stat:last-child{border-bottom:0}
+  .category-grid,.trust-grid,.products-grid,.dashboard-bottom-grid,.product-form{
+    grid-template-columns:1fr
+  }
+  .product-image{height:260px}
+  .cart-item{grid-template-columns:82px 1fr}
+  .cart-thumb{width:82px;height:76px}
+  .admin-content{padding:20px}
+  .admin-sidebar nav{grid-template-columns:1fr}
+  .success-card{padding:34px 22px}
+}
+
+@media(max-width:520px){
+  .hero-actions{grid-template-columns:1fr}
+  .two-cols{grid-template-columns:1fr}
+  .dashboard-cards,.dashboard-grid{grid-template-columns:1fr}
+}
+
+.hero-chair{
+display:flex;
+justify-content:center;
+align-items:center;
+position:relative;
+}
+
+.hero-chair img{
+width:100%;
+max-width:620px;
+object-fit:contain;
+filter:drop-shadow(0 30px 50px rgba(0,0,0,.15));
+animation:floatChair 4s ease-in-out infinite;
+}
+
+@keyframes floatChair{
+0%{transform:translateY(0)}
+50%{transform:translateY(-10px)}
+100%{transform:translateY(0)}
+}
+
+.hero-chair{
+position:relative;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:560px;
+}
+
+.hero-chair-img{
+width:120%;
+max-width:860px;
+object-fit:contain;
+filter:drop-shadow(0 34px 60px rgba(0,0,0,.18));
+}
+
+.hero-chair-logo{
+position:absolute;
+width:92px;
+height:92px;
+object-fit:contain;
+top:205px;
+right:250px;
+border-radius:50%;
+background:#fff;
+padding:4px;
+}
+
+.hero-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+align-items:center;
+min-height:720px
+}
+
+.hero-visual{
+position:relative;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100%;
+}
+
+.hero-visual::before{
+content:"";
+position:absolute;
+width:950px;
+height:950px;
+border-radius:50%;
+background:radial-gradient(circle,#dceeff 0%,#edf6ff 45%,transparent 70%);
+z-index:0;
+right:-180px;
+top:50%;
+transform:translateY(-50%);
+}
+
+.hero-chair{
+position:relative;
+z-index:2;
+width:1150px;
+max-width:none;
+margin-left:-90px;
+filter:drop-shadow(0 45px 75px rgba(0,0,0,.18));
+animation:floatChair 5s ease-in-out infinite;
+}
+
+@keyframes floatChair{
+0%{transform:translateY(0)}
+50%{transform:translateY(-10px)}
+100%{transform:translateY(0)}
+}
+
+@media(max-width:760px){
+
+.hero-grid{
+grid-template-columns:1fr;
+min-height:auto;
+}
+
+.hero-visual{
+margin-top:20px;
+}
+
+.hero-visual::before{
+width:500px;
+height:500px;
+right:50%;
+transform:translate(50%,-50%);
+}
+
+.hero-chair{
+width:115%;
+max-width:520px;
+}
+}
+
+.odontek-nav-logo{
+width:76px;
+height:76px;
+object-fit:cover;
+border-radius:50%;
+padding:0;
+background:#fff;
+box-shadow:
+0 14px 34px rgba(0,76,124,.18),
+0 0 0 8px rgba(230,244,255,.95);
+}
+
+.odk-logo-new{
+width:84px!important;
+height:84px!important;
+
+min-width:84px;
+min-height:84px;
+
+border-radius:50%;
+
+object-fit:cover!important;
+
+padding:0!important;
+margin:0!important;
+
+background:#fff;
+
+outline:4px solid #eef7ff;
+
+box-shadow:
+0 10px 30px rgba(0,76,124,.18);
+
+display:block;
+flex:none;
+}
+
+.brand img.odk-logo-new{
+width:90px!important;
+height:90px!important;
+min-width:90px!important;
+min-height:90px!important;
+max-width:90px!important;
+max-height:90px!important;
+object-fit:cover!important;
+border-radius:50%!important;
+padding:0!important;
+margin:0!important;
+background:#fff!important;
+outline:6px solid #eef7ff!important;
+box-shadow:0 14px 35px rgba(0,76,124,.22)!important;
+display:block!important;
+flex:0 0 90px!important;
+}

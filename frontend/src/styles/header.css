@@ -1,1 +1,73 @@
-.site-header{}
+/* ================= HEADER PREMIUM ================= */
+.site-header{
+position:sticky;
+top:0;
+z-index:50;
+background:rgba(255,255,255,.96);
+backdrop-filter:blur(18px);
+border-bottom:1px solid rgba(0,76,124,.10);
+box-shadow:0 10px 30px rgba(0,76,124,.08);
+}
+
+.nav-wrap{
+min-height:92px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:24px;
+}
+
+.brand{
+display:flex;
+align-items:center;
+gap:20px;
+}
+
+.brand span{
+border-left:2px solid #d7e7f5;
+padding-left:16px;
+}
+
+.brand strong{
+display:block;
+font-size:26px;
+color:#10243b;
+line-height:1;
+}
+
+.brand small{
+display:block;
+font-size:13px;
+color:#65758b;
+margin-top:7px;
+}
+
+.nav-links{
+display:flex;
+align-items:center;
+gap:14px;
+}
+
+.nav-links a{
+padding:13px 18px;
+border-radius:15px;
+font-weight:800;
+color:#21344a;
+}
+
+.nav-links a.active{
+background:#eef7ff;
+color:#0065d9;
+}
+
+.cart-link{
+background:#0867dd!important;
+color:white!important;
+box-shadow:0 12px 28px rgba(8,103,221,.25);
+}
+
+.admin-link{
+background:white;
+border:1px solid #d7e7f5!important;
+box-shadow:0 8px 22px rgba(0,76,124,.08);
+}

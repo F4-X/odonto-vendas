@@ -1,1 +1,134 @@
-.hero{}
+/* ================= HERO IGUAL AO MODELO ================= */
+.hero{
+  position:relative;
+  overflow:hidden;
+  padding:74px 0 48px;
+  background:
+    radial-gradient(circle at 78% 36%,rgba(98,172,255,.34),transparent 30%),
+    radial-gradient(circle at 100% 70%,rgba(192,222,255,.55),transparent 34%),
+    linear-gradient(135deg,#ffffff 0%,#f5fbff 47%,#eaf5ff 100%)
+}
+
+.hero:after{
+  content:"";
+  position:absolute;
+  right:-12%;
+  top:0;
+  width:58%;
+  height:100%;
+  background:linear-gradient(135deg,#cfe7ff,#eaf5ff);
+  border-radius:0 0 0 70%;
+  opacity:.82;
+  pointer-events:none
+}
+
+.hero-grid{
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  align-items:center;
+  gap:46px
+}
+
+.hero-content{max-width:700px}
+
+.hero-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 18px;
+  border-radius:999px;
+  background:#eaf5ff;
+  color:#075fd3;
+  font-weight:900;
+  font-size:14px;
+  margin-bottom:28px
+}
+
+.hero-badge:before{
+  content:"★";
+  font-size:14px
+}
+
+.hero h1{
+  max-width:720px;
+  font-size:clamp(44px,5.8vw,78px);
+  line-height:1.03;
+  letter-spacing:-4px;
+  margin-bottom:24px;
+  color:#102238
+}
+
+.hero h1 strong,
+.hero h1 em{
+  color:var(--azul-principal);
+  font-style:normal
+}
+
+.hero p{
+  max-width:620px;
+  color:#52667d;
+  font-size:20px;
+  line-height:1.75;
+  margin-bottom:32px
+}
+
+.hero-actions{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+  margin-top:30px
+}
+
+.hero-card{
+  min-height:470px;
+  border:0;
+  border-radius:36px;
+  padding:38px;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,255,255,.35)),
+    url("/hero-odontek.png") center/contain no-repeat;
+  box-shadow:none
+}
+
+.hero-card-mini,.hero-card h2,.hero-card p,.hero-card-list{display:none}
+
+.hero-stats{
+  position:relative;
+  z-index:2;
+  grid-column:1 / -1;
+  margin-top:28px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:0;
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(16px);
+  border:1px solid #e9f1fb;
+  border-radius:28px;
+  box-shadow:var(--sombra);
+  overflow:hidden
+}
+
+.hero-stat{
+  padding:26px 28px;
+  min-height:120px;
+  display:grid;
+  align-content:center;
+  gap:8px;
+  border-right:1px solid #e5eef8
+}
+
+.hero-stat:last-child{border-right:0}
+
+.hero-stat strong{
+  font-size:19px;
+  font-weight:950;
+  color:#102238
+}
+
+.hero-stat span{
+  color:#5f6f82;
+  line-height:1.5;
+  font-size:14px
+}

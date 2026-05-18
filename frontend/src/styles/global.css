@@ -1,9 +1,13 @@
 @import './variables.css';
 @import './base.css';
+@import './buttons.css';
 @import './header.css';
 @import './hero.css';
-@import './buttons.css';
 @import './sections.css';
 @import './products.css';
+@import './cart.css';
+@import './contact.css';
+@import './footer.css';
 @import './admin.css';
+@import './whatsapp.css';
 @import './responsive.css';
