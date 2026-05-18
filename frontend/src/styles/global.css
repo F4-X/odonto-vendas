@@ -1765,3 +1765,21 @@ grid-template-columns:1fr;
 min-height:130px;
 }
 }
+
+.brand-logo{
+width:52px;
+height:52px;
+border-radius:50%;
+object-fit:cover;
+background:#fff;
+box-shadow:0 10px 25px #00000018;
+}
+
+.footer-logo-img{
+width:64px;
+height:64px;
+border-radius:50%;
+object-fit:cover;
+background:#fff;
+padding:3px;
+}

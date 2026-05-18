@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import logo from "../assets/logo.png";
 
 export default function Footer() {
   return (
@@ -10,16 +11,14 @@ export default function Footer() {
 
           <div className="footer-brand">
 
-            <div className="footer-logo">
-              O
-            </div>
+            <img src={logo} alt="ODONTEK" className="footer-logo-img" />
 
             <div>
-              <h2>Odontek Store</h2>
+              <h2>ODONTEK</h2>
 
               <p>
-                Produtos e equipamentos odontológicos
-                com atendimento especializado.
+                Assistência técnica e produtos odontológicos
+com atendimento especializado.
               </p>
             </div>
 

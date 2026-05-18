@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext.jsx';
+import logo from "../assets/logo.png";
 
 export default function Navbar() {
   const { summary } = useCart();
@@ -14,10 +15,10 @@ export default function Navbar() {
     <header className="site-header">
       <div className="container nav-wrap">
         <Link to="/" className="brand" onClick={closeMenu}>
-          <span className="brand-mark">O</span>
+          <img src={logo} alt="ODONTEK" className="brand-logo" />
           <span>
-            <strong>Odontek Store</strong>
-            <small>Produtos odontológicos</small>
+            <strong>ODONTEK</strong>
+<small>Assistência Odontológica</small>
           </span>
         </Link>
 
