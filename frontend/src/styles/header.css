@@ -5,7 +5,7 @@ position:sticky;
 top:0;
 z-index:80;
 width:100%;
-background:rgba(255,255,255,.82);
+background:rgba(255,255,255,.88);
 backdrop-filter:blur(22px);
 border-bottom:1px solid rgba(220,232,245,.9);
 box-shadow:0 12px 38px rgba(15,35,60,.06);
@@ -29,17 +29,34 @@ gap:18px;
 text-decoration:none;
 }
 
-.brand img{
-width:82px;
-height:82px;
-min-width:82px;
-border-radius:50%;
-object-fit:cover;
-background:#fff;
-padding:4px;
+/* LOGO CERTA */
+
+.brand img,
+.odontek-nav-logo,
+.odk-logo-new{
+width:78px!important;
+height:78px!important;
+min-width:78px!important;
+max-width:78px!important;
+max-height:78px!important;
+
+border-radius:50%!important;
+
+object-fit:cover!important;
+
+padding:0!important;
+margin:0!important;
+
+background:#fff!important;
+
+outline:6px solid #eef7ff!important;
+
 box-shadow:
-0 14px 34px rgba(0,76,124,.12),
-0 0 0 8px rgba(235,244,255,.9);
+0 14px 34px rgba(0,76,124,.14)!important;
+
+display:block!important;
+flex:none!important;
+
 transition:.25s ease;
 }
 
@@ -156,10 +173,14 @@ min-height:82px;
 font-size:30px;
 }
 
-.brand img{
-width:72px;
-height:72px;
-min-width:72px;
+.brand img,
+.odontek-nav-logo,
+.odk-logo-new{
+width:70px!important;
+height:70px!important;
+min-width:70px!important;
+max-width:70px!important;
+max-height:70px!important;
 }
 
 .nav-links{
@@ -187,13 +208,19 @@ min-height:76px;
 gap:14px;
 }
 
-.brand img{
-width:62px;
-height:62px;
-min-width:62px;
+.brand img,
+.odontek-nav-logo,
+.odk-logo-new{
+width:58px!important;
+height:58px!important;
+min-width:58px!important;
+max-width:58px!important;
+max-height:58px!important;
+
+outline:5px solid #eef7ff!important;
+
 box-shadow:
-0 10px 24px rgba(0,76,124,.12),
-0 0 0 6px rgba(235,244,255,.95);
+0 10px 24px rgba(0,76,124,.12)!important;
 }
 
 .brand strong{
