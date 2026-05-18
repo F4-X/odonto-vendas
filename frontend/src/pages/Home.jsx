@@ -34,7 +34,7 @@ export default function Home() {
             </span>
 
             <h1>
-              Tecnologia e produtos para clínicas odontológicas.
+             
             </h1>
 
             <p>
