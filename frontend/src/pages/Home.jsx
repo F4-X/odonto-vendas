@@ -63,6 +63,25 @@ export default function Home() {
 
             </div>
 
+            <div className="hero-stats">
+
+              <div className="hero-stat">
+                <strong>+500</strong>
+                <span>Produtos</span>
+              </div>
+
+              <div className="hero-stat">
+                <strong>24h</strong>
+                <span>Atendimento</span>
+              </div>
+
+              <div className="hero-stat">
+                <strong>Premium</strong>
+                <span>Qualidade</span>
+              </div>
+
+            </div>
+
           </div>
 
           <div className="hero-visual">
@@ -151,54 +170,6 @@ export default function Home() {
                 <p>{categoria.descricao}</p>
               </Link>
             ))}
-
-          </div>
-
-        </div>
-      </section>
-
-      <section className="section metrics-section">
-        <div className="container">
-
-          <div className="metrics-wrapper">
-
-            <div className="metric-modern-card">
-              <h3>+500</h3>
-              <p>Produtos odontológicos</p>
-            </div>
-
-            <div className="metric-modern-card">
-              <h3>+120</h3>
-              <p>Clínicas atendidas</p>
-            </div>
-
-            <div className="metric-modern-card">
-              <h3>24h</h3>
-              <p>Atendimento rápido</p>
-            </div>
-
-            <div className="metric-modern-card">
-              <h3>Premium</h3>
-              <p>Qualidade garantida</p>
-            </div>
-
-          </div>
-
-          <div className="brands-modern">
-
-            <span>
-              Trabalhamos com marcas reconhecidas
-            </span>
-
-            <div className="brands-modern-grid">
-
-              <div>Dabi</div>
-              <div>Gnatus</div>
-              <div>Kavo</div>
-              <div>Schuster</div>
-              <div>Microdont</div>
-
-            </div>
 
           </div>
 
