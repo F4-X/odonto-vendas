@@ -1,14 +1,14 @@
-/* ================= HEADER PREMIUM ULTRA ================= */
+/* ================= HEADER PREMIUM CLEAN ================= */
 
 .site-header{
 position:sticky;
 top:0;
 z-index:80;
 width:100%;
-background:rgba(255,255,255,.94);
-backdrop-filter:blur(20px);
+background:rgba(255,255,255,.95);
+backdrop-filter:blur(18px);
 border-bottom:1px solid rgba(220,232,245,.9);
-box-shadow:0 10px 30px rgba(15,35,60,.05);
+box-shadow:0 8px 28px rgba(15,35,60,.05);
 transition:.3s ease;
 }
 
@@ -25,36 +25,34 @@ gap:30px;
 .brand{
 display:flex;
 align-items:center;
-gap:20px;
+gap:18px;
 text-decoration:none;
 }
 
-/* ========= LOGO PREMIUM ========= */
+/* ========= LOGO ========= */
 
 .brand img,
 .odontek-nav-logo,
 .odk-logo-new{
-width:86px!important;
-height:86px!important;
-min-width:86px!important;
-max-width:86px!important;
-max-height:86px!important;
+width:110px!important;
+height:110px!important;
+min-width:110px!important;
+max-width:110px!important;
+max-height:110px!important;
 
 border-radius:50%!important;
 
 object-fit:cover!important;
 
-padding:5px!important;
+padding:0!important;
 margin:0!important;
 
-background:
-linear-gradient(145deg,#ffffff,#eef6ff)!important;
+background:transparent!important;
 
-border:2px solid rgba(210,228,245,.95)!important;
+border:none!important;
+outline:none!important;
 
-box-shadow:
-0 14px 34px rgba(0,76,124,.16),
-0 0 0 10px rgba(236,245,255,.72)!important;
+box-shadow:none!important;
 
 display:block!important;
 flex:none!important;
@@ -63,11 +61,7 @@ transition:.28s ease;
 }
 
 .brand:hover img{
-transform:scale(1.06) rotate(-2deg);
-
-box-shadow:
-0 20px 44px rgba(0,76,124,.22),
-0 0 0 12px rgba(236,245,255,.92)!important;
+transform:scale(1.04);
 }
 
 /* ========= TEXT ========= */
@@ -76,7 +70,7 @@ box-shadow:
 display:flex;
 flex-direction:column;
 justify-content:center;
-gap:3px;
+gap:4px;
 }
 
 .brand strong{
@@ -93,7 +87,7 @@ font-size:15px;
 font-weight:600;
 letter-spacing:.04em;
 color:#6c7c90;
-margin-top:5px;
+margin-top:4px;
 }
 
 /* ========= NAVIGATION ========= */
@@ -190,11 +184,11 @@ font-size:13px;
 .brand img,
 .odontek-nav-logo,
 .odk-logo-new{
-width:72px!important;
-height:72px!important;
-min-width:72px!important;
-max-width:72px!important;
-max-height:72px!important;
+width:84px!important;
+height:84px!important;
+min-width:84px!important;
+max-width:84px!important;
+max-height:84px!important;
 }
 
 .nav-links{
@@ -227,17 +221,11 @@ gap:12px;
 .brand img,
 .odontek-nav-logo,
 .odk-logo-new{
-width:58px!important;
-height:58px!important;
-min-width:58px!important;
-max-width:58px!important;
-max-height:58px!important;
-
-padding:4px!important;
-
-box-shadow:
-0 10px 24px rgba(0,76,124,.12),
-0 0 0 6px rgba(236,245,255,.88)!important;
+width:64px!important;
+height:64px!important;
+min-width:64px!important;
+max-width:64px!important;
+max-height:64px!important;
 }
 
 .brand strong{
