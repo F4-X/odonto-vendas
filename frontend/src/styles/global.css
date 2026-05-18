@@ -1,4 +1,4 @@
-/* importe os outros arquivos aqui */@import './variables.css';
+@import './variables.css';
 @import './base.css';
 @import './header.css';
 @import './hero.css';
