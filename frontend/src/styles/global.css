@@ -198,14 +198,13 @@ box-shadow:0 8px 22px rgba(0,76,124,.08);
 }
 
 .hero-card{
-  min-height:470px;
-  border:0;
-  border-radius:36px;
-  padding:38px;
-  background:
-    linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,255,255,.35)),
-    url("/hero-odontek.png") center/contain no-repeat;
-  box-shadow:none
+padding:0;
+background:transparent;
+box-shadow:none;
+border:0;
+display:flex;
+justify-content:center;
+align-items:center;
 }
 
 .hero-card-mini,.hero-card h2,.hero-card p,.hero-card-list{display:none}
@@ -1150,11 +1149,8 @@ padding:4px;
 }
 
 .hero-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:20px;
+grid-template-columns:1fr 1.2fr;
 align-items:center;
-min-height:720px
 }
 
 .hero-visual{
@@ -1493,4 +1489,11 @@ top:52%;
   .hero-stats{
     grid-template-columns:1fr!important;
   }
+}
+
+.hero-card img{
+width:100%;
+max-width:780px;
+transform:scale(1.18);
+object-fit:contain;
 }
