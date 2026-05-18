@@ -107,7 +107,7 @@ export default function ProductDetails() {
 
           <a
             className="btn btn-outline detail-whatsapp"
-            href="https://wa.me/5500000000000"
+            href="https://wa.me/5542998255775"
             target="_blank"
             rel="noreferrer"
           >

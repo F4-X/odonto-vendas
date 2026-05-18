@@ -64,7 +64,7 @@ export default function CheckoutSuccess() {
 
           <a
             className="btn btn-outline btn-large"
-            href="https://wa.me/5500000000000"
+            href="https://wa.me/5542998255775"
             target="_blank"
             rel="noreferrer"
           >
