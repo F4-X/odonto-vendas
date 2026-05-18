@@ -89,29 +89,7 @@ export default function Home() {
     src={cadeira}
     alt="Cadeira odontológica"
   />
-
-            <span className="hero-card-mini">
-              Atendimento especializado
-            </span>
-
-            <h2>
-              Compra direta ou orçamento
-            </h2>
-
-            <p>
-              Produtos com preço fixo podem ir direto para
-              o carrinho. Equipamentos maiores entram como
-              orçamento personalizado.
-            </p>
-
-            <div className="hero-card-list">
-              <div>✓ Consultórios e cadeiras</div>
-              <div>✓ Peças de mão</div>
-              <div>✓ Assistência técnica</div>
-              <div>✓ Entrega regional</div>
-            </div>
-
-          </div>
+</div>
 
         </div>
       </section>
