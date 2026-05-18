@@ -1474,19 +1474,20 @@ max-width:520px;
     transform:translate(50%,-50%)!important;
   }
 
- .hero-chair{
-width:1350px!important;
+.hero-chair{
+width:1650px!important;
 max-width:none!important;
-margin-left:-180px;
-margin-top:40px;
-filter:drop-shadow(0 45px 75px rgba(0,0,0,.20));
+margin-left:-320px;
+margin-top:70px;
+filter:drop-shadow(0 55px 90px rgba(0,0,0,.24));
 animation:floatChair 5s ease-in-out infinite;
 }
 
 .hero-visual::before{
-width:1100px;
-height:1100px;
-right:-220px;
+width:1400px;
+height:1400px;
+right:-340px;
+top:52%;
 }
 
   .hero-stats{
