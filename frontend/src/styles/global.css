@@ -1146,10 +1146,11 @@ padding:4px;
 
 .hero-grid{
 display:grid;
-grid-template-columns:1fr 1fr;
-gap:20px;
+grid-template-columns:.9fr 1.1fr;
+gap:0;
 align-items:center;
-min-height:720px
+min-height:760px;
+overflow:hidden;
 }
 
 .hero-visual{
