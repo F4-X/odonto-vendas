@@ -1238,3 +1238,21 @@ box-shadow:
 display:block;
 flex:none;
 }
+
+.brand img.odk-logo-new{
+width:90px!important;
+height:90px!important;
+min-width:90px!important;
+min-height:90px!important;
+max-width:90px!important;
+max-height:90px!important;
+object-fit:cover!important;
+border-radius:50%!important;
+padding:0!important;
+margin:0!important;
+background:#fff!important;
+outline:6px solid #eef7ff!important;
+box-shadow:0 14px 35px rgba(0,76,124,.22)!important;
+display:block!important;
+flex:0 0 90px!important;
+}
