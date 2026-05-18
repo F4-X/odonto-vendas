@@ -1116,3 +1116,24 @@ th{
   .two-cols{grid-template-columns:1fr}
   .dashboard-cards,.dashboard-grid{grid-template-columns:1fr}
 }
+
+.hero-chair{
+display:flex;
+justify-content:center;
+align-items:center;
+position:relative;
+}
+
+.hero-chair img{
+width:100%;
+max-width:620px;
+object-fit:contain;
+filter:drop-shadow(0 30px 50px rgba(0,0,0,.15));
+animation:floatChair 4s ease-in-out infinite;
+}
+
+@keyframes floatChair{
+0%{transform:translateY(0)}
+50%{transform:translateY(-10px)}
+100%{transform:translateY(0)}
+}
