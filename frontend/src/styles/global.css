@@ -1197,7 +1197,7 @@ transform:translateY(-50%);
 .hero-chair{
 position:relative;
 z-index:2;
-width:1050px;
+width:1150px;
 max-width:none;
 margin-left:-90px;
 filter:drop-shadow(0 45px 75px rgba(0,0,0,.18));
