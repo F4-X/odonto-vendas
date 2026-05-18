@@ -55,10 +55,11 @@ filter:drop-shadow(0 14px 24px rgba(7,95,211,.28)) drop-shadow(0 4px 8px rgba(15
 
 .brand span{
 display:flex;
-align-items:baseline;
-gap:0;
-border-left:none!important;
-padding-left:0!important;
+align-items:center;
+gap:10px;
+padding-left:14px;
+margin-left:2px;
+border-left:2px solid #d9e6f3;
 }
 
 .brand strong{
@@ -75,8 +76,8 @@ font-size:14px;
 font-weight:700;
 letter-spacing:.03em;
 color:#6c7c90;
-margin-left:-2px;
 white-space:nowrap;
+margin-top:2px;
 }
 
 .nav-links{
