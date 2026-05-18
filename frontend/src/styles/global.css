@@ -59,9 +59,10 @@ width:64px;
 height:64px;
 object-fit:cover;
 border-radius:50%;
-padding:4px;
-background:linear-gradient(135deg,#fff,#eaf6ff);
-box-shadow:0 14px 35px rgba(0,76,124,.22);
+padding:2px;
+background:#fff;
+border:2px solid #e7f2ff;
+box-shadow:0 14px 35px rgba(0,76,124,.20);
 }
 
 .brand span{
@@ -1041,6 +1042,10 @@ th{
   .admin-sidebar{position:relative;min-height:auto}
   .admin-sidebar nav{grid-template-columns:repeat(2,1fr)}
   .product-form{grid-template-columns:repeat(2,1fr)}
+}
+
+.mobile-actions{
+display:none;
 }
 
 @media(max-width:760px){
