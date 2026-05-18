@@ -1049,6 +1049,11 @@ display:none;
 }
 
 @media(max-width:760px){
+  .hero-chair{
+width:135%!important;
+max-width:700px!important;
+margin-left:0;
+margin-top:0;}
   .container{width:min(100% - 28px,1280px)}
   .site-header{z-index:70}
   .nav-wrap{min-height:76px;gap:12px}
@@ -1469,10 +1474,20 @@ max-width:520px;
     transform:translate(50%,-50%)!important;
   }
 
-  .hero-chair{
-    width:115%!important;
-    max-width:520px!important;
-  }
+ .hero-chair{
+width:1350px!important;
+max-width:none!important;
+margin-left:-180px;
+margin-top:40px;
+filter:drop-shadow(0 45px 75px rgba(0,0,0,.20));
+animation:floatChair 5s ease-in-out infinite;
+}
+
+.hero-visual::before{
+width:1100px;
+height:1100px;
+right:-220px;
+}
 
   .hero-stats{
     grid-template-columns:1fr!important;
