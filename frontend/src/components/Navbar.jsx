@@ -15,12 +15,12 @@ export default function Navbar() {
     <header className="site-header">
       <div className="container nav-wrap">
         <Link to="/" className="brand" onClick={closeMenu}>
-          <img src={logo} alt="ODONTEK" className="brand-logo" />
-          <span>
-            <strong>ODONTEK</strong>
-<small>Assistência Odontológica</small>
-          </span>
-        </Link>
+  <img src={logo} alt="ODONTEK" className="odontek-nav-logo" />
+  <span>
+    <strong>ODONTEK</strong>
+    <small>Assistência Odontológica</small>
+  </span>
+</Link>
 
         <div className="mobile-actions">
           <NavLink to="/carrinho" className="mobile-cart" onClick={closeMenu}>

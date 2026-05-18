@@ -1211,3 +1211,15 @@ width:115%;
 max-width:520px;
 }
 }
+
+.odontek-nav-logo{
+width:76px;
+height:76px;
+object-fit:cover;
+border-radius:50%;
+padding:0;
+background:#fff;
+box-shadow:
+0 14px 34px rgba(0,76,124,.18),
+0 0 0 8px rgba(230,244,255,.95);
+}
