@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api.js';
 import ProductCard from '../components/ProductCard.jsx';
+import cadeira from '../assets/cadeira.png';
 
 export default function Home() {
   const [categorias, setCategorias] = useState([]);
@@ -83,7 +84,11 @@ export default function Home() {
 
           </div>
 
-          <div className="hero-card">
+          <div className="hero-chair">
+  <img
+    src={cadeira}
+    alt="Cadeira odontológica"
+  />
 
             <span className="hero-card-mini">
               Atendimento especializado
