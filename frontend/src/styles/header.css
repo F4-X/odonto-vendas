@@ -34,25 +34,25 @@ text-decoration:none;
 .brand img,
 .odontek-nav-logo,
 .odk-logo-new{
-width:110px!important;
-height:110px!important;
-min-width:110px!important;
-max-width:110px!important;
-max-height:110px!important;
+width:118px!important;
+height:118px!important;
+min-width:118px!important;
+max-width:118px!important;
+max-height:118px!important;
 
-border-radius:50%!important;
-
-object-fit:cover!important;
+object-fit:contain!important;
+border-radius:0!important;
 
 padding:0!important;
 margin:0!important;
 
 background:transparent!important;
-
 border:none!important;
 outline:none!important;
 
-box-shadow:none!important;
+filter:
+drop-shadow(0 10px 18px rgba(7,95,211,.18))
+drop-shadow(0 2px 4px rgba(15,35,60,.10));
 
 display:block!important;
 flex:none!important;
@@ -61,9 +61,11 @@ transition:.28s ease;
 }
 
 .brand:hover img{
-transform:scale(1.04);
+transform:scale(1.07) rotate(-1deg);
+filter:
+drop-shadow(0 14px 24px rgba(7,95,211,.26))
+drop-shadow(0 4px 8px rgba(15,35,60,.12));
 }
-
 /* ========= TEXT ========= */
 
 .brand-content{
