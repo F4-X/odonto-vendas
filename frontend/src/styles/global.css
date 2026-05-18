@@ -51,21 +51,19 @@ gap:24px;
 .brand{
 display:flex;
 align-items:center;
-gap:16px;
+gap:20px;
 }
 
 .brand-logo{
-width:64px;
-height:64px;
-object-fit:contain;
-transform:scale(1.18);
+width:78px;
+height:78px;
+object-fit:cover;
 border-radius:50%;
 padding:0;
 background:#fff;
-border:0px solid #e7f2ff;
+border:0;
 box-shadow:0 14px 35px rgba(0,76,124,.20);
 }
-
 .brand span{
 border-left:2px solid #d7e7f5;
 padding-left:16px;
