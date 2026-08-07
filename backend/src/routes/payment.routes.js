@@ -1,9 +1,10 @@
 import { Router } from 'express';
+import { randomUUID } from 'crypto';
+
 import {
-  createHmac,
-  randomUUID,
-  timingSafeEqual
-} from 'crypto';
+  WebhookSignatureValidator,
+  InvalidWebhookSignatureError
+} from 'mercadopago';
 
 import { query } from '../database/db.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -25,86 +26,6 @@ const router = Router();
 
 function normalizeDigits(value) {
   return String(value || '').replace(/\D/g, '');
-}
-
-function validateMercadoPagoSignature(req) {
-  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
-
-  if (!secret) {
-    return {
-      valid: false,
-      reason: 'MERCADOPAGO_WEBHOOK_SECRET não configurado.'
-    };
-  }
-
-  const xSignature = req.headers['x-signature'];
-  const xRequestId = req.headers['x-request-id'];
-
-  const rawDataId =
-    req.query?.['data.id'] ||
-    req.body?.data?.id;
-
-  if (!xSignature || !xRequestId || !rawDataId) {
-    return {
-      valid: false,
-      reason: 'Cabeçalhos ou data.id ausentes.'
-    };
-  }
-
-  const parts = String(xSignature)
-    .split(',')
-    .map((part) => part.trim());
-
-  const signatureParts = {};
-
-  for (const part of parts) {
-    const [key, ...rest] = part.split('=');
-
-    if (key && rest.length) {
-      signatureParts[key] = rest.join('=');
-    }
-  }
-
-  const ts = signatureParts.ts;
-  const receivedHash = signatureParts.v1;
-
-  if (!ts || !receivedHash) {
-    return {
-      valid: false,
-      reason: 'Formato de x-signature inválido.'
-    };
-  }
-
-  const dataId = String(rawDataId).toLowerCase();
-
-  const manifest =
-    `id:${dataId};` +
-    `request-id:${xRequestId};` +
-    `ts:${ts};`;
-
-  const expectedHash = createHmac('sha256', secret)
-    .update(manifest)
-    .digest('hex');
-
-  const expectedBuffer = Buffer.from(expectedHash);
-  const receivedBuffer = Buffer.from(receivedHash);
-
-  if (expectedBuffer.length !== receivedBuffer.length) {
-    return {
-      valid: false,
-      reason: 'Assinatura com tamanho inválido.'
-    };
-  }
-
-  const valid = timingSafeEqual(
-    expectedBuffer,
-    receivedBuffer
-  );
-
-  return {
-    valid,
-    reason: valid ? null : 'Assinatura inválida.'
-  };
 }
 
 async function saveGatewayPayment(
@@ -184,12 +105,24 @@ async function saveGatewayPayment(
   );
 }
 
+/*
+ * ============================================================
+ * CONFIGURAÇÃO PÚBLICA DO MERCADO PAGO
+ * ============================================================
+ */
+
 router.get('/config', (_req, res) => {
   res.json({
     enabled: mercadoPagoEnabled(),
     publicKey: mercadoPagoPublicKey()
   });
 });
+
+/*
+ * ============================================================
+ * CRIAR PAGAMENTO
+ * ============================================================
+ */
 
 router.post(
   '/mercadopago',
@@ -208,11 +141,14 @@ router.post(
       !payment
     ) {
       return res.status(400).json({
-        message:
-          'Dados de pagamento incompletos.'
+        message: 'Dados de pagamento incompletos.'
       });
     }
 
+    /*
+     * Busca o pedido e confirma que o token
+     * pertence ao pedido informado.
+     */
     const orderResult = await query(
       `SELECT
          p.*,
@@ -240,24 +176,34 @@ router.post(
       });
     }
 
+    /*
+     * Impede pagamento duplicado.
+     */
     if (
       order.pagamento_status === 'approved'
     ) {
       return res.status(409).json({
-        message:
-          'Este pedido já está pago.'
+        message: 'Este pedido já está pago.'
       });
     }
 
     if (Number(order.total) <= 0) {
       return res.status(400).json({
-        message:
-          'Pedido sem valor para pagamento.'
+        message: 'Pedido sem valor para pagamento.'
       });
     }
 
+    /*
+     * Reserva estoque antes de criar o pagamento.
+     */
     await reserveStockForOrder(pedidoId);
 
+    /*
+     * A mesma tentativa usa a mesma chave.
+     *
+     * Isso evita cobranças duplicadas caso
+     * o navegador repita a requisição.
+     */
     let idempotencyKey =
       order.payment_attempt_key;
 
@@ -275,6 +221,9 @@ router.post(
       );
     }
 
+    /*
+     * Dados do pagador.
+     */
     const payer = {
       ...(payment.payer || {}),
 
@@ -284,6 +233,10 @@ router.post(
         undefined
     };
 
+    /*
+     * Caso o Brick não mande o CPF,
+     * usamos o CPF cadastrado no pedido.
+     */
     if (
       !payer.identification?.number &&
       order.cpf
@@ -294,6 +247,9 @@ router.post(
       };
     }
 
+    /*
+     * Payload enviado ao Mercado Pago.
+     */
     const payload = {
       transaction_amount:
         Number(order.total),
@@ -327,6 +283,10 @@ router.post(
         checkout_token
       },
 
+      /*
+       * O Mercado Pago usará esta URL
+       * para avisar mudanças no pagamento.
+       */
       notification_url:
         process.env.PUBLIC_BASE_URL
           ? `${process.env.PUBLIC_BASE_URL.replace(
@@ -336,6 +296,9 @@ router.post(
           : undefined
     };
 
+    /*
+     * Remove propriedades undefined.
+     */
     Object.keys(payload).forEach(
       (key) => {
         if (payload[key] === undefined) {
@@ -345,18 +308,32 @@ router.post(
     );
 
     try {
+      /*
+       * Cria o pagamento no gateway.
+       */
       const gatewayPayment =
         await createPayment(
           payload,
           idempotencyKey
         );
 
+      /*
+       * Salva resposta do gateway.
+       */
       await saveGatewayPayment(
         pedidoId,
         gatewayPayment,
         idempotencyKey
       );
 
+      /*
+       * Sincroniza status do pedido.
+       *
+       * Exemplos:
+       *
+       * approved -> confirmado
+       * pending  -> aguardando_pagamento
+       */
       const updatedOrder =
         await syncOrderPaymentStatus(
           pedidoId,
@@ -406,14 +383,11 @@ router.post(
       });
     } catch (error) {
       /*
-       * Se o gateway recusou a operação
-       * explicitamente com erro 4xx,
-       * liberamos a reserva.
+       * Se o Mercado Pago recusou explicitamente
+       * com erro 4xx, sabemos que o pagamento
+       * não foi criado.
        *
-       * Em erros 5xx não liberamos
-       * imediatamente porque pode existir
-       * incerteza sobre o processamento
-       * da transação.
+       * Podemos então liberar a reserva.
        */
       if (
         error.statusCode &&
@@ -431,10 +405,22 @@ router.post(
         );
       }
 
+      /*
+       * Em erro 5xx não liberamos imediatamente.
+       *
+       * Pode existir incerteza sobre o pagamento
+       * ter sido criado no gateway.
+       */
       throw error;
     }
   })
 );
+
+/*
+ * ============================================================
+ * CONSULTAR STATUS DO PAGAMENTO
+ * ============================================================
+ */
 
 router.get(
   '/status/:pedidoId',
@@ -498,33 +484,126 @@ router.get(
   })
 );
 
+/*
+ * ============================================================
+ * WEBHOOK MERCADO PAGO
+ * ============================================================
+ */
+
 export async function processMercadoPagoWebhook(
   req,
   res
 ) {
+  const secret =
+    process.env.MERCADOPAGO_WEBHOOK_SECRET;
+
   /*
-   * PRIMEIRO:
-   * verifica se a chamada realmente veio
-   * do Mercado Pago.
+   * Não aceitamos webhook sem uma
+   * assinatura secreta configurada.
    */
-
-  const signature =
-    validateMercadoPagoSignature(req);
-
-  if (!signature.valid) {
+  if (!secret) {
     console.error(
-      `Webhook Mercado Pago rejeitado: ${signature.reason}`
+      'Webhook Mercado Pago rejeitado: MERCADOPAGO_WEBHOOK_SECRET não configurado.'
     );
 
-    return res.status(401).json({
-      message:
-        'Notificação não autorizada.'
+    return res.status(503).json({
+      message: 'Webhook não configurado.'
     });
   }
 
+  /*
+   * Cabeçalhos enviados pelo Mercado Pago.
+   */
+  const xSignature =
+    req.headers['x-signature'];
+
+  const xRequestId =
+    req.headers['x-request-id'];
+
+  /*
+   * O Mercado Pago normalmente envia:
+   *
+   * ?data.id=123456&type=payment
+   *
+   * Mas mantemos fallback para body
+   * para deixar a rota mais robusta.
+   */
+  const dataId =
+    req.query?.['data.id'] ||
+    req.body?.data?.id;
+
+  if (
+    !xSignature ||
+    !xRequestId ||
+    !dataId
+  ) {
+    console.error(
+      'Webhook Mercado Pago rejeitado: cabeçalhos ou data.id ausentes.'
+    );
+
+    return res.status(401).json({
+      message: 'Notificação não autorizada.'
+    });
+  }
+
+  /*
+   * ==========================================================
+   * VALIDAÇÃO OFICIAL DA ASSINATURA
+   * ==========================================================
+   *
+   * Usamos o SDK oficial mercadopago@3.3.0.
+   */
+  try {
+    WebhookSignatureValidator.validate({
+      xSignature:
+        String(xSignature),
+
+      xRequestId:
+        String(xRequestId),
+
+      dataId:
+        String(dataId),
+
+      secret
+    });
+  } catch (error) {
+    if (
+      error instanceof
+      InvalidWebhookSignatureError
+    ) {
+      console.error(
+        `Webhook Mercado Pago rejeitado: assinatura inválida. Data ID: ${dataId}`
+      );
+
+      return res.status(401).json({
+        message: 'Assinatura inválida.'
+      });
+    }
+
+    console.error(
+      'Erro inesperado ao validar webhook Mercado Pago:',
+      error
+    );
+
+    return res.status(500).json({
+      message: 'Erro ao validar webhook.'
+    });
+  }
+
+  /*
+   * ==========================================================
+   * ASSINATURA VÁLIDA
+   * ==========================================================
+   *
+   * Respondemos rapidamente 200 para
+   * o Mercado Pago não considerar timeout.
+   */
+  res.status(200).json({
+    received: true
+  });
+
   const paymentId =
-    req.body?.data?.id ||
-    req.query?.['data.id'];
+    String(dataId);
 
   const type =
     req.body?.type ||
@@ -533,37 +612,37 @@ export async function processMercadoPagoWebhook(
     req.query?.topic;
 
   /*
-   * Responde rapidamente ao Mercado Pago
-   * depois da assinatura ter sido validada.
+   * Ignora eventos que não sejam pagamento.
    */
-  res.status(200).json({
-    received: true
-  });
-
-  if (!paymentId) {
-    return;
-  }
-
   if (
     type &&
     !String(type)
       .toLowerCase()
       .includes('payment')
   ) {
+    console.log(
+      `Webhook Mercado Pago ignorado: evento ${type}.`
+    );
+
     return;
   }
 
   try {
     /*
-     * Nunca confiamos somente nos dados
-     * recebidos no webhook.
+     * ========================================================
+     * CONSULTA O PAGAMENTO NO MERCADO PAGO
+     * ========================================================
      *
-     * Consultamos novamente o pagamento
-     * diretamente na API do Mercado Pago.
+     * Nunca confiamos somente nos dados
+     * recebidos pelo webhook.
      */
     const payment =
       await getPayment(paymentId);
 
+    /*
+     * Recupera qual pedido da Odontek
+     * pertence a esse pagamento.
+     */
     const pedidoId = Number(
       payment?.metadata?.pedido_id ||
       payment?.external_reference
@@ -577,6 +656,9 @@ export async function processMercadoPagoWebhook(
       return;
     }
 
+    /*
+     * Busca o valor original do pedido.
+     */
     const orderResult =
       await query(
         `SELECT
@@ -599,9 +681,13 @@ export async function processMercadoPagoWebhook(
     }
 
     /*
-     * Segurança extra:
-     * o valor confirmado pelo Mercado Pago
-     * precisa ser o mesmo valor do pedido.
+     * ========================================================
+     * VERIFICAÇÃO DE VALOR
+     * ========================================================
+     *
+     * Um pagamento só pode atualizar o pedido
+     * se o valor confirmado pelo Mercado Pago
+     * for igual ao valor registrado na Odontek.
      */
     const orderTotal =
       Number(order.total);
@@ -619,29 +705,42 @@ export async function processMercadoPagoWebhook(
       ) > 0.01
     ) {
       console.error(
-        `Webhook ignorado: valor divergente no pedido ${pedidoId}. Pedido=${orderTotal}, MercadoPago=${paymentTotal}`
+        `Webhook Mercado Pago ignorado: valor divergente no pedido ${pedidoId}. Pedido=${orderTotal}, MercadoPago=${paymentTotal}`
       );
 
       return;
     }
 
+    /*
+     * Atualiza registro do pagamento.
+     */
     await saveGatewayPayment(
       pedidoId,
       payment
     );
 
+    /*
+     * Atualiza pedido e estoque conforme
+     * o status confirmado pelo gateway.
+     */
     await syncOrderPaymentStatus(
       pedidoId,
       payment
     );
 
     console.log(
-      `Webhook Mercado Pago processado: pagamento ${paymentId}, pedido ${pedidoId}, status ${payment.status}.`
+      `Webhook Mercado Pago processado com sucesso: pagamento=${paymentId}, pedido=${pedidoId}, status=${payment.status}.`
     );
   } catch (error) {
+    /*
+     * O webhook já recebeu HTTP 200.
+     *
+     * Registramos qualquer falha interna
+     * para investigação.
+     */
     console.error(
       'Erro ao processar webhook Mercado Pago:',
-      error.message
+      error
     );
   }
 }
