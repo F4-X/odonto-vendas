@@ -144,7 +144,7 @@ export default function ProductsAdmin() {
           <table>
             <thead>
               <tr>
-                <th>Imagem</th><th>Produto</th><th>Categoria</th><th>Tipo</th><th>Preço</th><th>Estoque</th><th>Status</th><th>Ações</th>
+                <th>Imagem</th><th>Produto</th><th>Categoria</th><th>Tipo</th><th>Preço</th><th>Estoque</th><th>Reservado</th><th>Status</th><th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -158,6 +158,7 @@ export default function ProductsAdmin() {
                     <td>{produto.tipo_venda === 'orcamento' ? 'Orçamento' : 'Preço fixo'}</td>
                     <td>{produto.tipo_venda === 'orcamento' ? '-' : formatCurrency(produto.preco)}</td>
                     <td>{produto.estoque}</td>
+                    <td>{produto.estoque_reservado || 0}</td>
                     <td>{produto.ativo ? 'Ativo' : 'Inativo'}</td>
                     <td className="actions-cell">
                       <button className="btn btn-small" onClick={() => edit(produto)}>Editar</button>

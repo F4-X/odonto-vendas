@@ -66,13 +66,13 @@ export default function Home() {
             <div className="hero-stats">
 
               <div className="hero-stat">
-                <strong>+500</strong>
-                <span>Produtos</span>
+                <strong>Catálogo</strong>
+                <span>Produtos selecionados</span>
               </div>
 
               <div className="hero-stat">
-                <strong>24h</strong>
-                <span>Atendimento</span>
+                <strong>WhatsApp</strong>
+                <span>Atendimento comercial</span>
               </div>
 
               <div className="hero-stat">
@@ -170,6 +170,54 @@ export default function Home() {
                 <p>{categoria.descricao}</p>
               </Link>
             ))}
+
+          </div>
+
+        </div>
+      </section>
+
+      <section className="section metrics-section">
+        <div className="container">
+
+          <div className="metrics-wrapper">
+
+            <div className="metric-modern-card">
+              <h3>Completo</h3>
+              <p>Catálogo odontológico</p>
+            </div>
+
+            <div className="metric-modern-card">
+              <h3>Regional</h3>
+              <p>Atendimento especializado</p>
+            </div>
+
+            <div className="metric-modern-card">
+              <h3>Direto</h3>
+              <p>Contato por WhatsApp</p>
+            </div>
+
+            <div className="metric-modern-card">
+              <h3>Premium</h3>
+              <p>Qualidade garantida</p>
+            </div>
+
+          </div>
+
+          <div className="brands-modern">
+
+            <span>
+              Trabalhamos com marcas reconhecidas
+            </span>
+
+            <div className="brands-modern-grid">
+
+              <div>Dabi</div>
+              <div>Gnatus</div>
+              <div>Kavo</div>
+              <div>Schuster</div>
+              <div>Microdont</div>
+
+            </div>
 
           </div>
 

@@ -25,9 +25,11 @@ export default function ProductDetails() {
 
   const image = assetUrl(product.imagem);
   const isQuote = product.tipo_venda === 'orcamento';
+  const available = Number(product.estoque_disponivel ?? product.estoque ?? 0);
+  const soldOut = !isQuote && available <= 0;
 
   function handleAdd() {
-    addItem(product, quantity);
+    if (!soldOut) addItem(product, Math.min(quantity, Math.max(1, available)));
   }
 
   return (
@@ -71,7 +73,7 @@ export default function ProductDetails() {
               <span><strong>Modelo:</strong> {product.modelo}</span>
             )}
 
-            <span><strong>Estoque:</strong> {product.estoque}</span>
+            <span><strong>Disponível:</strong> {isQuote ? 'Consulte disponibilidade' : available}</span>
 
             <span>
               <strong>Tipo:</strong> {isQuote ? 'Sob orçamento' : 'Preço fixo'}
@@ -96,13 +98,14 @@ export default function ProductDetails() {
             <input
               type="number"
               min="1"
+              max={isQuote ? 99 : Math.max(1, available)}
               value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
+              onChange={(e) => setQuantity(Math.min(Number(e.target.value), isQuote ? 99 : Math.max(1, available)))}
             />
           </div>
 
-          <button className="btn btn-large detail-buy-button" onClick={handleAdd}>
-            {isQuote ? 'Adicionar ao orçamento' : 'Adicionar ao carrinho'}
+          <button className="btn btn-large detail-buy-button" onClick={handleAdd} disabled={soldOut}>
+            {isQuote ? 'Adicionar ao orçamento' : soldOut ? 'Produto sem estoque' : 'Adicionar ao carrinho'}
           </button>
 
           <a

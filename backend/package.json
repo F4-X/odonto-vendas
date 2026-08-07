@@ -1,23 +1,26 @@
 {
-  "name": "odonto-vendas-backend",
-  "version": "1.0.0",
-  "description": "API do sistema de vendas odontológicas",
+  "name": "odontek-store-backend",
+  "version": "2.0.0",
+  "private": true,
+  "description": "API Odontek Store - PostgreSQL, pedidos, orçamentos e pagamentos Mercado Pago",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-    "dev": "nodemon --watch src --ignore data --ignore src/uploads src/server.js",
+    "dev": "nodemon --watch src --ignore src/uploads src/server.js",
     "start": "node src/server.js",
-    "dev:safe": "node src/server.js",
-    "reset-db": "node src/scripts/reset-db.js"
+    "check": "node --check src/server.js"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
-    "@electric-sql/pglite": "0.4.5",
     "bcryptjs": "2.4.3",
     "cors": "2.8.5",
     "dotenv": "16.4.7",
     "express": "4.21.2",
     "jsonwebtoken": "9.0.2",
-    "multer": "2.0.2"
+    "multer": "2.0.2",
+    "pg": "8.16.3"
   },
   "devDependencies": {
     "nodemon": "3.1.10"

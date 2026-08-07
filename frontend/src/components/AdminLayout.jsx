@@ -25,6 +25,7 @@ export default function AdminLayout() {
           <NavLink to="/admin/categorias">Categorias</NavLink>
           <NavLink to="/admin/pedidos">Pedidos</NavLink>
           <NavLink to="/admin/orcamentos">Orçamentos</NavLink>
+          <NavLink to="/admin/conta">Minha conta</NavLink>
         </nav>
         <button className="btn btn-outline admin-logout" onClick={logout}>Sair</button>
       </aside>

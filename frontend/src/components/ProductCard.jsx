@@ -6,6 +6,8 @@ export default function ProductCard({ product }) {
   const { addItem } = useCart();
   const image = assetUrl(product.imagem);
   const isQuote = product.tipo_venda === 'orcamento';
+  const available = Number(product.estoque_disponivel ?? product.estoque ?? 0);
+  const soldOut = !isQuote && available <= 0;
 
   return (
     <article className="product-card">
@@ -39,8 +41,10 @@ export default function ProductCard({ product }) {
             </div>
           )}
 
-          {product.estoque > 0 && (
-            <span className="stock-pill">{product.estoque} em estoque</span>
+          {!isQuote && (
+            <span className={`stock-pill ${soldOut ? 'stock-empty' : ''}`}>
+              {soldOut ? 'Sem estoque' : `${available} em estoque`}
+            </span>
           )}
         </div>
 
@@ -51,9 +55,10 @@ export default function ProductCard({ product }) {
         <div className="product-actions">
           <button
             onClick={() => addItem(product, 1)}
+            disabled={soldOut}
             className={isQuote ? 'btn btn-outline' : 'btn'}
           >
-            {isQuote ? 'Solicitar orçamento' : 'Adicionar'}
+            {isQuote ? 'Solicitar orçamento' : soldOut ? 'Indisponível' : 'Adicionar'}
           </button>
 
           <Link to={`/produtos/${product.id}`} className="btn btn-ghost">

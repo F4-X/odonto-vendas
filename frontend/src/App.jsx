@@ -9,6 +9,7 @@ import Products from './pages/Products.jsx';
 import ProductDetails from './pages/ProductDetails.jsx';
 import Cart from './pages/Cart.jsx';
 import CheckoutSuccess from './pages/CheckoutSuccess.jsx';
+import Payment from './pages/Payment.jsx';
 import Contact from './pages/Contact.jsx';
 import AdminLogin from './pages/admin/AdminLogin.jsx';
 import Dashboard from './pages/admin/Dashboard.jsx';
@@ -16,6 +17,7 @@ import CategoriesAdmin from './pages/admin/CategoriesAdmin.jsx';
 import ProductsAdmin from './pages/admin/ProductsAdmin.jsx';
 import PedidosAdmin from './pages/admin/PedidosAdmin.jsx';
 import OrcamentosAdmin from './pages/admin/OrcamentosAdmin.jsx';
+import AccountAdmin from './pages/admin/AccountAdmin.jsx';
 
 function PublicLayout({ children }) {
   return (
@@ -35,6 +37,7 @@ export default function App() {
       <Route path="/produtos" element={<PublicLayout><Products /></PublicLayout>} />
       <Route path="/produtos/:id" element={<PublicLayout><ProductDetails /></PublicLayout>} />
       <Route path="/carrinho" element={<PublicLayout><Cart /></PublicLayout>} />
+      <Route path="/pagamento" element={<PublicLayout><Payment /></PublicLayout>} />
       <Route path="/pedido-finalizado" element={<PublicLayout><CheckoutSuccess /></PublicLayout>} />
       <Route path="/contato" element={<PublicLayout><Contact /></PublicLayout>} />
 
@@ -46,6 +49,7 @@ export default function App() {
         <Route path="produtos" element={<ProductsAdmin />} />
         <Route path="pedidos" element={<PedidosAdmin />} />
         <Route path="orcamentos" element={<OrcamentosAdmin />} />
+        <Route path="conta" element={<AccountAdmin />} />
       </Route>
 
       <Route path="*" element={<PublicLayout><div className="container page"><h1>Página não encontrada</h1></div></PublicLayout>} />

@@ -1,6 +1,6 @@
 {
-  "name": "odonto-vendas-frontend",
-  "version": "1.0.0",
+  "name": "odontek-store-frontend",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {

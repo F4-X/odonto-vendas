@@ -1,13 +1,15 @@
 import { Router } from 'express';
+import bcrypt from 'bcryptjs';
 import { query } from '../database/db.js';
 import { auth } from '../middlewares/auth.js';
 import { upload } from '../middlewares/upload.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { releaseOrderReservation } from '../services/orderService.js';
 
 const router = Router();
 router.use(auth);
 
-const pedidoStatus = ['pendente', 'confirmado', 'em_separacao', 'saiu_para_entrega', 'finalizado', 'cancelado'];
+const pedidoStatus = ['pendente', 'aguardando_pagamento', 'pagamento_recusado', 'pagamento_expirado', 'revisao_estoque', 'confirmado', 'em_separacao', 'saiu_para_entrega', 'finalizado', 'cancelado', 'reembolsado', 'chargeback'];
 const orcamentoStatus = ['pendente', 'em_atendimento', 'enviado', 'aprovado', 'recusado', 'cancelado'];
 
 function toBoolean(value) {
@@ -21,14 +23,33 @@ function parsePrice(value, tipoVenda) {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
+
+router.put('/minha-senha', asyncHandler(async (req, res) => {
+  const senhaAtual = String(req.body.senha_atual || '');
+  const novaSenha = String(req.body.nova_senha || '');
+  if (!senhaAtual || novaSenha.length < 10) {
+    return res.status(400).json({ message: 'Informe a senha atual e uma nova senha com pelo menos 10 caracteres.' });
+  }
+
+  const result = await query('SELECT senha FROM usuarios WHERE id = $1 AND ativo = TRUE', [req.user.id]);
+  const usuario = result.rows[0];
+  if (!usuario || !(await bcrypt.compare(senhaAtual, usuario.senha))) {
+    return res.status(401).json({ message: 'Senha atual incorreta.' });
+  }
+
+  const hash = await bcrypt.hash(novaSenha, 12);
+  await query('UPDATE usuarios SET senha = $1 WHERE id = $2', [hash, req.user.id]);
+  res.json({ message: 'Senha alterada com sucesso.' });
+}));
+
 router.get('/dashboard', asyncHandler(async (_req, res) => {
   const [produtos, categorias, pedidos, orcamentos, vendas, pendentes] = await Promise.all([
     query('SELECT COUNT(*) AS total FROM produtos WHERE ativo = TRUE'),
     query('SELECT COUNT(*) AS total FROM categorias WHERE ativo = TRUE'),
     query('SELECT COUNT(*) AS total FROM pedidos'),
     query('SELECT COUNT(*) AS total FROM orcamentos'),
-    query("SELECT COALESCE(SUM(total), 0) AS total FROM pedidos WHERE status <> 'cancelado'"),
-    query("SELECT COUNT(*) AS total FROM pedidos WHERE status = 'pendente'")
+    query("SELECT COALESCE(SUM(total), 0) AS total FROM pedidos WHERE pagamento_status = 'approved'"),
+    query("SELECT COUNT(*) AS total FROM pedidos WHERE status IN ('aguardando_pagamento','confirmado','em_separacao')")
   ]);
 
   res.json({
@@ -93,7 +114,8 @@ router.delete('/categorias/:id', asyncHandler(async (req, res) => {
 
 router.get('/produtos', asyncHandler(async (_req, res) => {
   const result = await query(
-    `SELECT p.*, c.nome AS categoria_nome
+    `SELECT p.*, c.nome AS categoria_nome,
+            GREATEST(p.estoque - COALESCE(p.estoque_reservado, 0), 0) AS estoque_disponivel
      FROM produtos p
      LEFT JOIN categorias c ON c.id = p.categoria_id
      ORDER BY p.ativo DESC, p.destaque DESC, p.nome ASC`
@@ -112,7 +134,7 @@ router.post('/produtos', upload.single('imagem'), asyncHandler(async (req, res) 
     return res.status(400).json({ message: 'Tipo de venda inválido.' });
   }
 
-  const imagem = req.file ? `/uploads/${req.file.filename}` : null;
+  const imagem = req.file ? `/api/uploads/${req.file.filename}` : null;
   const result = await query(
     `INSERT INTO produtos
       (nome, descricao, marca, modelo, categoria_id, preco, tipo_venda, estoque, imagem, ativo, destaque)
@@ -152,7 +174,7 @@ router.put('/produtos/:id', upload.single('imagem'), asyncHandler(async (req, re
     return res.status(400).json({ message: 'Tipo de venda inválido.' });
   }
 
-  const imagem = req.file ? `/uploads/${req.file.filename}` : atual.imagem;
+  const imagem = req.file ? `/api/uploads/${req.file.filename}` : atual.imagem;
   const result = await query(
     `UPDATE produtos
      SET nome = $1,
@@ -216,7 +238,7 @@ router.get('/pedidos', asyncHandler(async (_req, res) => {
 
 router.get('/pedidos/:id', asyncHandler(async (req, res) => {
   const pedidoResult = await query(
-    `SELECT p.*, c.nome AS cliente_nome, c.whatsapp, c.cidade, c.estado, c.endereco
+    `SELECT p.*, c.nome AS cliente_nome, c.email, c.cpf, c.whatsapp, c.cidade, c.estado, c.endereco
      FROM pedidos p
      LEFT JOIN clientes c ON c.id = p.cliente_id
      WHERE p.id = $1`,
@@ -234,7 +256,13 @@ router.get('/pedidos/:id', asyncHandler(async (req, res) => {
     [Number(req.params.id)]
   );
 
-  res.json({ ...pedidoResult.rows[0], itens: itensResult.rows });
+  const pagamentosResult = await query(
+    `SELECT gateway_payment_id, status, status_detail, payment_method_id, payment_type_id, installments, transaction_amount, criado_em, atualizado_em
+     FROM pagamentos WHERE pedido_id = $1 ORDER BY id DESC`,
+    [Number(req.params.id)]
+  );
+
+  res.json({ ...pedidoResult.rows[0], itens: itensResult.rows, pagamentos: pagamentosResult.rows });
 }));
 
 router.put('/pedidos/:id/status', asyncHandler(async (req, res) => {
@@ -243,12 +271,21 @@ router.put('/pedidos/:id/status', asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Status de pedido inválido.' });
   }
 
+  const pedidoId = Number(req.params.id);
+  if (status === 'cancelado') {
+    const paymentCheck = await query('SELECT pagamento_status FROM pedidos WHERE id = $1', [pedidoId]);
+    if (paymentCheck.rows[0]?.pagamento_status === 'approved') {
+      return res.status(409).json({ message: 'Pedido pago não deve ser cancelado sem tratar o reembolso no Mercado Pago.' });
+    }
+    await releaseOrderReservation(pedidoId);
+  }
+
   const result = await query(
     `UPDATE pedidos
      SET status = $1, atualizado_em = CURRENT_TIMESTAMP
      WHERE id = $2
      RETURNING *`,
-    [status, Number(req.params.id)]
+    [status, pedidoId]
   );
 
   if (!result.rows[0]) return res.status(404).json({ message: 'Pedido não encontrado.' });

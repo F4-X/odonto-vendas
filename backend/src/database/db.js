@@ -12,14 +12,35 @@ const pool = new Pool({
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD,
   database: process.env.PGDATABASE,
-  ssl:
-    String(process.env.PGSSL || 'false').toLowerCase() === 'true'
-      ? { rejectUnauthorized: false }
-      : false
+  max: Number(process.env.PGPOOL_MAX || 10),
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+  ssl: String(process.env.PGSSL || 'false').toLowerCase() === 'true'
+    ? { rejectUnauthorized: false }
+    : false
 });
 
-export async function query(sql, params = []) {
+pool.on('error', (error) => {
+  console.error('Erro inesperado no pool PostgreSQL:', error);
+});
+
+export function query(sql, params = []) {
   return pool.query(sql, params);
+}
+
+export async function withTransaction(callback) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await callback(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function closeDB() {
@@ -28,6 +49,7 @@ export async function closeDB() {
 
 export async function initDB() {
   await createTables();
+  await runMigrations();
   await seedInitialData();
 }
 
@@ -63,9 +85,10 @@ async function createTables() {
       marca TEXT,
       modelo TEXT,
       categoria_id INTEGER REFERENCES categorias(id) ON DELETE SET NULL,
-      preco NUMERIC(10,2),
+      preco NUMERIC(12,2),
       tipo_venda TEXT NOT NULL CHECK (tipo_venda IN ('preco_fixo', 'orcamento')),
       estoque INTEGER DEFAULT 0,
+      estoque_reservado INTEGER DEFAULT 0,
       imagem TEXT,
       ativo BOOLEAN DEFAULT TRUE,
       destaque BOOLEAN DEFAULT FALSE,
@@ -78,6 +101,8 @@ async function createTables() {
     CREATE TABLE IF NOT EXISTS clientes (
       id SERIAL PRIMARY KEY,
       nome TEXT NOT NULL,
+      email TEXT,
+      cpf TEXT,
       whatsapp TEXT NOT NULL,
       cidade TEXT,
       estado TEXT,
@@ -90,9 +115,17 @@ async function createTables() {
     CREATE TABLE IF NOT EXISTS pedidos (
       id SERIAL PRIMARY KEY,
       cliente_id INTEGER REFERENCES clientes(id),
-      total NUMERIC(10,2) DEFAULT 0,
-      status TEXT DEFAULT 'pendente',
+      total NUMERIC(12,2) DEFAULT 0,
+      status TEXT DEFAULT 'aguardando_pagamento',
+      pagamento_status TEXT DEFAULT 'pending',
+      pagamento_metodo TEXT,
+      pagamento_id TEXT,
+      checkout_token TEXT UNIQUE,
+      payment_attempt_key TEXT,
+      estoque_reservado BOOLEAN DEFAULT FALSE,
+      reserva_expira_em TIMESTAMP,
       observacoes TEXT,
+      pago_em TIMESTAMP,
       criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -103,8 +136,8 @@ async function createTables() {
       id SERIAL PRIMARY KEY,
       pedido_id INTEGER REFERENCES pedidos(id) ON DELETE CASCADE,
       produto_id INTEGER REFERENCES produtos(id),
-      quantidade INTEGER NOT NULL,
-      preco_unitario NUMERIC(10,2) NOT NULL
+      quantidade INTEGER NOT NULL CHECK (quantidade > 0),
+      preco_unitario NUMERIC(12,2) NOT NULL
     );
   `);
 
@@ -124,29 +157,77 @@ async function createTables() {
       id SERIAL PRIMARY KEY,
       orcamento_id INTEGER REFERENCES orcamentos(id) ON DELETE CASCADE,
       produto_id INTEGER REFERENCES produtos(id),
-      quantidade INTEGER DEFAULT 1
+      quantidade INTEGER DEFAULT 1 CHECK (quantidade > 0)
+    );
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS pagamentos (
+      id SERIAL PRIMARY KEY,
+      pedido_id INTEGER NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
+      gateway TEXT NOT NULL DEFAULT 'mercadopago',
+      gateway_payment_id TEXT UNIQUE,
+      status TEXT,
+      status_detail TEXT,
+      payment_method_id TEXT,
+      payment_type_id TEXT,
+      installments INTEGER,
+      transaction_amount NUMERIC(12,2),
+      idempotency_key TEXT,
+      qr_code TEXT,
+      qr_code_base64 TEXT,
+      raw_response JSONB,
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
 }
 
+async function runMigrations() {
+  const statements = [
+    `ALTER TABLE produtos ADD COLUMN IF NOT EXISTS estoque_reservado INTEGER DEFAULT 0`,
+    `ALTER TABLE clientes ADD COLUMN IF NOT EXISTS email TEXT`,
+    `ALTER TABLE clientes ADD COLUMN IF NOT EXISTS cpf TEXT`,
+    `ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS pagamento_status TEXT DEFAULT 'pending'`,
+    `ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS pagamento_metodo TEXT`,
+    `ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS pagamento_id TEXT`,
+    `ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS checkout_token TEXT`,
+    `ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS payment_attempt_key TEXT`,
+    `ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS estoque_reservado BOOLEAN DEFAULT FALSE`,
+    `ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS reserva_expira_em TIMESTAMP`,
+    `ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS pago_em TIMESTAMP`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS idx_pedidos_checkout_token ON pedidos(checkout_token) WHERE checkout_token IS NOT NULL`,
+    `CREATE INDEX IF NOT EXISTS idx_pedidos_pagamento_status ON pedidos(pagamento_status)`,
+    `CREATE INDEX IF NOT EXISTS idx_pagamentos_pedido ON pagamentos(pedido_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_produtos_ativo_categoria ON produtos(ativo, categoria_id)`
+  ];
+
+  for (const statement of statements) {
+    await query(statement);
+  }
+}
+
 async function seedInitialData() {
-  const adminCount = await query(
-    'SELECT COUNT(*) AS total FROM usuarios WHERE email = $1',
-    ['admin@odontek.com.br']
-  );
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminName = process.env.ADMIN_NAME?.trim() || 'Administrador';
 
-  if (Number(adminCount.rows[0].count || adminCount.rows[0].total) === 0) {
-    const senhaHash = await bcrypt.hash('admin123', 10);
-
-    await query(
-      'INSERT INTO usuarios (nome, email, senha, role) VALUES ($1, $2, $3, $4)',
-      ['Administrador', 'admin@odontek.com.br', senhaHash, 'admin']
-    );
+  const adminCount = await query('SELECT COUNT(*) AS total FROM usuarios');
+  if (Number(adminCount.rows[0].total) === 0) {
+    if (adminEmail && adminPassword && adminPassword.length >= 10) {
+      const senhaHash = await bcrypt.hash(adminPassword, 12);
+      await query(
+        'INSERT INTO usuarios (nome, email, senha, role) VALUES ($1, $2, $3, $4)',
+        [adminName, adminEmail, senhaHash, 'admin']
+      );
+      console.log(`Administrador inicial criado para ${adminEmail}.`);
+    } else {
+      console.warn('Nenhum usuário admin existe. Defina ADMIN_EMAIL e ADMIN_PASSWORD (mínimo 10 caracteres) no .env e reinicie uma vez.');
+    }
   }
 
   const catCount = await query('SELECT COUNT(*) AS total FROM categorias');
-
-  if (Number(catCount.rows[0].count || catCount.rows[0].total) === 0) {
+  if (Number(catCount.rows[0].total) === 0) {
     const categorias = [
       ['Consultórios / Cadeiras', 'Cadeiras odontológicas, consultórios completos e conjuntos de atendimento.'],
       ['Peças de mão', 'Canetas de alta rotação, contra-ângulos, micromotores e peças retas.'],
@@ -159,87 +240,7 @@ async function seedInitialData() {
     ];
 
     for (const [nome, descricao] of categorias) {
-      await query(
-        'INSERT INTO categorias (nome, descricao) VALUES ($1, $2)',
-        [nome, descricao]
-      );
-    }
-  }
-
-  const prodCount = await query('SELECT COUNT(*) AS total FROM produtos');
-
-  if (Number(prodCount.rows[0].count || prodCount.rows[0].total) === 0) {
-    const categoriasRows = await query('SELECT id, nome FROM categorias');
-
-    const categoriaId = Object.fromEntries(
-      categoriasRows.rows.map((c) => [c.nome, c.id])
-    );
-
-    const produtos = [
-      {
-        nome: 'Cadeira odontológica completa',
-        descricao: 'Consultório odontológico completo para clínicas que buscam conforto, tecnologia e alta durabilidade.',
-        marca: 'Linha Premium',
-        modelo: 'Consultório Completo',
-        categoria: 'Consultórios / Cadeiras',
-        preco: null,
-        tipo_venda: 'orcamento',
-        estoque: 2,
-        destaque: true
-      },
-      {
-        nome: 'Caneta de alta rotação',
-        descricao: 'Caneta de alta rotação indicada para procedimentos clínicos.',
-        marca: 'Odonto Pro',
-        modelo: 'Alta 400',
-        categoria: 'Peças de mão',
-        preco: 449.90,
-        tipo_venda: 'preco_fixo',
-        estoque: 12,
-        destaque: true
-      },
-      {
-        nome: 'Contra-ângulo odontológico',
-        descricao: 'Contra-ângulo para uso clínico.',
-        marca: 'Odonto Pro',
-        modelo: 'CA 1:1',
-        categoria: 'Peças de mão',
-        preco: 389.90,
-        tipo_venda: 'preco_fixo',
-        estoque: 8,
-        destaque: false
-      },
-      {
-        nome: 'Autoclave odontológica 21L',
-        descricao: 'Autoclave para esterilização.',
-        marca: 'BioClean',
-        modelo: '21L Digital',
-        categoria: 'Esterilização',
-        preco: null,
-        tipo_venda: 'orcamento',
-        estoque: 3,
-        destaque: true
-      }
-    ];
-
-    for (const produto of produtos) {
-      await query(
-        `INSERT INTO produtos
-          (nome, descricao, marca, modelo, categoria_id, preco, tipo_venda, estoque, imagem, ativo, destaque)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE, $10)`,
-        [
-          produto.nome,
-          produto.descricao,
-          produto.marca,
-          produto.modelo,
-          categoriaId[produto.categoria],
-          produto.preco,
-          produto.tipo_venda,
-          produto.estoque,
-          null,
-          produto.destaque
-        ]
-      );
+      await query('INSERT INTO categorias (nome, descricao) VALUES ($1, $2)', [nome, descricao]);
     }
   }
 }
